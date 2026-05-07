@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import time
 import google.generativeai as genai
 import arxiv
 
@@ -24,6 +25,40 @@ except Exception:
     model = genai.GenerativeModel('gemini-1.5-flash')
 
 def fetch_recent_papers():
+    search_query = '(abs:"medical" OR abs:"multimodal") AND (abs:"NLP" OR abs:"time-series")'
+    
+    # 서버 에러 시 최대 3번까지 다시 시도
+    for attempt in range(3):
+        try:
+            search = arxiv.Search(
+                query=search_query,
+                max_results=5,
+                sort_by=arxiv.SortCriterion.SubmittedDate
+            )
+            
+            paper_data = []
+            # results()를 리스트로 변환하여 에러 발생 여부를 즉시 확인
+            results = list(search.results())
+            
+            for result in results:
+                paper_info = {
+                    "title": result.title,
+                    "summary": result.summary[:400],
+                    "url": result.pdf_url
+                }
+                paper_data.append(paper_info)
+            
+            return paper_data
+
+        except Exception as e:
+            print(f"⚠️ {attempt + 1}회차 시도 실패: {e}")
+            if attempt < 2:
+                time.sleep(5) # 5초 대기 후 다시 시도
+            else:
+                print("❌ arXiv 서버 응답 지연으로 논문을 가져올 수 없습니다.")
+                return []
+
+def fetch_recent_papers_org():
     """
     arXiv에서 의료, 멀티모달, NLP, 시계열 키워드로 최신 논문을 수집합니다.
     """
