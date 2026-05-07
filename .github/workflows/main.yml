@@ -3,9 +3,9 @@ name: AI Paper Notifier Bot
 # 언제 실행할지 결정
 on:
   schedule:
-    # 한국 시간(KST) 오전 7:30분 = UTC 오후 10:30분
-    # 분(30) 시(22) 일(*) 월(*) 요일(*)
-    - cron: '30 22 * * *'
+    # 한국 시간(KST) 오전 6:00 = UTC 오후 9:00
+    # 분(00) 시(21) 일(*) 월(*) 요일(*)
+    - cron: '0 21 * * *'
   workflow_dispatch:     # GitHub 웹사이트에서 버튼 눌러서 수동 실행 가능하게 함
 
 jobs:
