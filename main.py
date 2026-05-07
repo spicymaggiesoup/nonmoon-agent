@@ -123,6 +123,7 @@ def get_gemini_summary(paper_list):
     # Tone & Style:
     - 전문 용어는 정확하게 사용하고, 1줄의 간단한 인삿말과 함께 Task의 내용만 전달할 것.
     - 카카오톡 메시지 형식에 맞게 이모지를 적절히 섞어 가독성 있게 작성할 것.
+    - 카카오톡 메시지 글자수 제한이 있으니, 전체 내용은 공백 포함 800자 이내로 핵심만 뾰족하게 작성할 것.
     """
     
     response = model.generate_content(prompt)
@@ -139,6 +140,43 @@ def get_access_token():
     return response.json().get("access_token")
 
 def send_kakao_msg(token, text):
+    url = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # 'text' 대신 'feed' 템플릿 사용 (더 많은 글자수 수용)
+    payload = {
+        "template_object": json.dumps({
+            "object_type": "feed",
+            "content": {
+                "title": "🎓 오늘의 SCI급 논문 분석 리포트",
+                "description": text, # 여기서 Gemini가 쓴 글이 들어갑니다.
+                "image_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/robotoserif/static/RobotoSerif-Regular.png", # 예시 아이콘
+                "link": {
+                    "web_url": "https://arxiv.org",
+                    "mobile_web_url": "https://arxiv.org"
+                }
+            },
+            "buttons": [
+                {
+                    "title": "논문 원문 보기",
+                    "link": {
+                        "web_url": "https://arxiv.org",
+                        "mobile_web_url": "https://arxiv.org"
+                    }
+                }
+            ]
+        })
+    }
+    res = requests.post(url, headers=headers, data=payload)
+    
+    # 응답 확인 로그
+    result = res.json()
+    if result.get("result_code") == 0:
+        print("✅ 카카오톡 전송 성공!")
+    else:
+        print(f"❌ 전송 실패: {result}")
+
+def send_kakao_msg_org(token, text):
     url = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
