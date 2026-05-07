@@ -23,9 +23,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests
+          pip install requests google-generativeai arxiv
           # 크롤링 라이브러리 혹은 LLM 추가
-          pip install requests google-generativeai
 
       - name: Run Script
         env:
