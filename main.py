@@ -24,7 +24,7 @@ except Exception:
     # 혹시라도 위 형식이 안 될 경우를 대비한 예외 처리
     model = genai.GenerativeModel('models/gemini-2.0-flash-lite')
 
-def fetch_recent_papers():
+def fetch_recent_papers_org():
     search_query = '(abs:"medical" OR abs:"multimodal") AND (abs:"NLP" OR abs:"time-series")'
     
     # 서버 에러 시 최대 3번까지 다시 시도
@@ -61,29 +61,52 @@ def fetch_recent_papers():
                 print("❌ arXiv 서버 응답 지연으로 논문을 가져올 수 없습니다.")
                 return []
 
-def fetch_recent_papers_org():
+def fetch_recent_papers():
     """
-    arXiv에서 의료, 멀티모달, NLP, 시계열 키워드로 최신 논문을 수집합니다.
+    관심 도메인(의료, 우주, 에이전트)과 
+    핵심 기술(멀티모달, NLP, 시계열, 강화학습, 디지털트윈)의 융합 논문을 검색합니다.
     """
-    # 사용자님의 관심 키워드 조합
-    search_query = '(abs:"medical" OR abs:"multimodal") AND (abs:"NLP" OR abs:"time-series")'
+    # 도메인 키워드 (일반의료 + 우주의료 특화 키워드 + 에이전트)
+    domains = '(abs:"medical" OR abs:"healthcare" OR abs:"microgravity" OR abs:"spaceflight" OR abs:"aerospace medicine" OR abs:"agent")'
+    
+    # 기술 키워드 (멀티모달, NLP, 시계열, 강화학습, 디지털트윈)
+    techs = '(abs:"multimodal" OR abs:"NLP" OR abs:"time-series" OR abs:"reinforcement learning" OR abs:"digital twin")'
+    
+    # 최종 쿼리: 도메인과 기술이 하나씩은 포함되도록 설정
+    search_query = f"{domains} AND {techs}"
+
+    print(f"🔍 검색 쿼리: {search_query}")
     
     search = arxiv.Search(
         query=search_query,
-        max_results=2, # 너무 많으면 카톡 글자수 제한에 걸리므로 5개로 제한
+        max_results=50, # 50개를 가져와서
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
     
-    paper_data = []
-    for result in search.results():
-        paper_info = {
-            "title": result.title,
-            "summary": result.summary[:400], # Gemini 분석용 초록 일부
-            "url": result.pdf_url
-        }
-        paper_data.append(paper_info)
-    
-    return paper_data
+    client = arxiv.Client()
+    try:
+        results = list(client.results(search))
+        
+        if not results:
+            return []
+            
+        # 중복 방지를 위해 50개 중 2개 랜덤 추출
+        sampled_results = random.sample(results, min(len(results), 2))
+        
+        paper_data = []
+        for result in sampled_results:
+            paper_info = {
+                "title": result.title,
+                "summary": result.summary[:400],
+                "url": result.pdf_url
+            }
+            paper_data.append(paper_info)
+        
+        return paper_data
+
+    except Exception as e:
+        print(f"❌ arXiv 검색 중 에러 발생: {e}")
+        return []
 
 def get_gemini_summary(paper_list):
     """
@@ -107,7 +130,7 @@ def get_gemini_summary(paper_list):
     3. 문체: 불필요한 수식어(~라고 생각됩니다, ~인 것 같습니다 등)를 배제하고 '~임, ~함' 등 명사형 종결이나 직설적인 문체를 사용하세요.
     
     # Context:
-    사용자는 인공지능 분야 석사과정생으로, 의료데이터를 다룬 인공지능, 멀티모달(Multimodal), NLP, 시계열 데이터 융합 등에 관심이 많습니다. 
+    사용자는 인공지능 분야 석사과정생으로, 의료/우주/에이전트/디지털트윈 도메인을 다룬 인공지능, 멀티모달(Multimodal), NLP, 시계열 데이터 융합 등에 관심이 많습니다. 
     단순한 기술 습득이 아니라, 기존 연구를 비판적으로 계승하여 '나만의 논문 발제'를 하는 것이 목표입니다.
 
     # Content Structure:
