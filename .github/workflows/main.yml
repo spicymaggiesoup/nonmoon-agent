@@ -31,4 +31,5 @@ jobs:
           # GitHub Secrets에 저장한 키들을 프로그램으로 불러옴
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py # main.py 실행
