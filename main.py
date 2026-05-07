@@ -123,7 +123,7 @@ def get_gemini_summary(paper_list):
     # Tone & Style:
     - 전문 용어는 정확하게 사용하고, 1줄의 간단한 인삿말과 함께 Task의 내용만 전달할 것.
     - 카카오톡 메시지 형식에 맞게 이모지를 적절히 섞어 가독성 있게 작성할 것.
-    - 카카오톡 메시지 글자수 제한이 있으니, 전체 내용은 공백 포함 800자 이내로 핵심만 뾰족하게 작성할 것.
+    - 카카오톡 메시지 글자수 제한이 있으니, 전체 내용은 공백 포함 200자 이내로 핵심만 뾰족하게 작성할 것.
     """
     
     response = model.generate_content(prompt)
@@ -139,7 +139,7 @@ def get_access_token():
     response = requests.post(url, data=data)
     return response.json().get("access_token")
 
-def send_kakao_msg(token, text):
+def send_kakao_msg_feedType(token, text):
     url = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
     headers = {"Authorization": f"Bearer {token}"}
     
@@ -176,7 +176,7 @@ def send_kakao_msg(token, text):
     else:
         print(f"❌ 전송 실패: {result}")
 
-def send_kakao_msg_org(token, text):
+def send_kakao_msg(token, text):
     url = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
