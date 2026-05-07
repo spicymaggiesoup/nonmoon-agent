@@ -29,7 +29,8 @@ def send_kakao_msg(token, text):
             "button_title": "논문 확인"
         })
     }
-    requests.post(url, headers=headers, data=payload)
+    res = requests.post(url, headers=headers, data=payload)
+    print(f"카카오 응답 결과: {res.json()}") 
 
 # 메인 실행 로직
 if __name__ == "__main__":
