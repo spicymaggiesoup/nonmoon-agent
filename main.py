@@ -10,19 +10,19 @@ REST_API_KEY = os.environ.get('KAKAO_REST_API_KEY')
 REFRESH_TOKEN = os.environ.get('KAKAO_REFRESH_TOKEN')
 
 # Gemini 설정
-for m in genai.list_models():
-    if 'generateContent' in m.supported_generation_methods:
-        print(m.name)
+# for m in genai.list_models():
+#     if 'generateContent' in m.supported_generation_methods:
+#         print(m.name)
 
 genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 #model = genai.GenerativeModel('models/gemini-1.5-flash')
 #model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 # 모델명을 명시적으로 지정 (경로 포함)
 try:
-    model = genai.GenerativeModel('models/gemini-1.5-flash')
+    model = genai.GenerativeModel('models/gemini-3-flash-preview')
 except Exception:
     # 혹시라도 위 형식이 안 될 경우를 대비한 예외 처리
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('models/gemini-2.0-flash-lite')
 
 def fetch_recent_papers():
     search_query = '(abs:"medical" OR abs:"multimodal") AND (abs:"NLP" OR abs:"time-series")'
@@ -37,8 +37,11 @@ def fetch_recent_papers():
             )
             
             paper_data = []
-            # results()를 리스트로 변환하여 에러 발생 여부를 즉시 확인
-            results = list(search.results())
+            # deprecated -- results()를 리스트로 변환하여 에러 발생 여부를 즉시 확인
+            # results = list(search.results())
+            # 최신 라이브러리 방식
+            client = arxiv.Client()
+            results = list(client.results(search))
             
             for result in results:
                 paper_info = {
