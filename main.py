@@ -70,7 +70,7 @@ def fetch_recent_papers_org():
     
     search = arxiv.Search(
         query=search_query,
-        max_results=5, # 너무 많으면 카톡 글자수 제한에 걸리므로 5개로 제한
+        max_results=2, # 너무 많으면 카톡 글자수 제한에 걸리므로 5개로 제한
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
     
@@ -104,7 +104,7 @@ def get_gemini_summary(paper_list):
     단순한 기술 습득이 아니라, 기존 연구를 비판적으로 계승하여 '나만의 논문 발제'를 하는 것이 목표입니다.
     
     # Task:
-    제공된 논문 리스트 중에서 가장 임팩트 있는 3개를 선정하여 아래 기준에 따라 분석하세요.
+    제공된 논문 리스트 중에서 가장 임팩트 있는 2개를 선정하여 아래 기준에 따라 분석하세요.
     (반드시 각 논문의 [PDF 링크]를 제목 옆에 포함시켜주세요.)
     
     ## 1. 🔍 비판적 시각 (Critical Review)
