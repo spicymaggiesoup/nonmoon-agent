@@ -10,7 +10,8 @@ REFRESH_TOKEN = os.environ.get('KAKAO_REFRESH_TOKEN')
 
 # Gemini 설정
 genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+#model = genai.GenerativeModel('models/gemini-1.5-flash')
+model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
 def fetch_recent_papers():
     """
