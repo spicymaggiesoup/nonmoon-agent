@@ -76,36 +76,36 @@ def fetch_recent_papers():
     search_query = f"{domains} AND {techs}"
 
     print(f"🔍 검색 쿼리: {search_query}")
-    
-    search = arxiv.Search(
-        query=search_query,
-        max_results=50, # 50개를 가져와서
-        sort_by=arxiv.SortCriterion.SubmittedDate
-    )
-    
-    client = arxiv.Client()
-    try:
-        results = list(client.results(search))
-        
-        if not results:
-            return []
-            
-        # 중복 방지를 위해 50개 중 2개 랜덤 추출
-        sampled_results = random.sample(results, min(len(results), 2))
-        
-        paper_data = []
-        for result in sampled_results:
-            paper_info = {
-                "title": result.title,
-                "summary": result.summary[:400],
-                "url": result.pdf_url
-            }
-            paper_data.append(paper_info)
-        
-        return paper_data
 
-    except Exception as e:
-        print(f"❌ arXiv 검색 중 에러 발생: {e}")
+    # 서버 에러 시 최대 3번까지 다시 시도
+    for attempt in range(3):
+        try:
+            search = arxiv.Search(
+                query=search_query,
+                max_results=50, # 50개를 가져와서
+                sort_by=arxiv.SortCriterion.SubmittedDate
+            )
+            
+            paper_data = []
+            
+            client = arxiv.Client()
+            results = list(client.results(search))
+                
+            # 중복 방지를 위해 50개 중 2개 랜덤 추출
+            sampled_results = random.sample(results, min(len(results), 2))
+            
+            for result in sampled_results:
+                paper_info = {
+                    "title": result.title,
+                    "summary": result.summary[:400],
+                    "url": result.pdf_url
+                }
+                paper_data.append(paper_info)
+            
+            return paper_data
+    
+        except Exception as e:
+            print(f"❌ arXiv 검색 중 에러 발생: {e}")
         return []
 
 def get_gemini_summary(paper_list):
