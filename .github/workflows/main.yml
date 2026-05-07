@@ -1,0 +1,34 @@
+name: AI Paper Notifier Bot
+
+# 언제 실행할지 결정
+on:
+  schedule:
+    # 한국 시간(KST) 오전 7:30분 = UTC 오후 10:30분
+    # 분(30) 시(22) 일(*) 월(*) 요일(*)
+    - cron: '30 22 * * *'
+  workflow_dispatch:     # GitHub 웹사이트에서 버튼 눌러서 수동 실행 가능하게 함
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 리눅스 가상 컴퓨터에서 실행
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # 현재 레포지토리의 소스코드를 가져옴
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+          # 나중에 클로드나 크롤링 라이브러리 추가 시 여기에 pip install 추가
+
+      - name: Run Script
+        env:
+          # GitHub Secrets에 저장한 키들을 프로그램으로 불러옴
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+        run: python main.py # main.py 실행
