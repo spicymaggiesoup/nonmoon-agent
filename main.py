@@ -9,9 +9,19 @@ REST_API_KEY = os.environ.get('KAKAO_REST_API_KEY')
 REFRESH_TOKEN = os.environ.get('KAKAO_REFRESH_TOKEN')
 
 # Gemini 설정
+for m in genai.list_models():
+    if 'generateContent' in m.supported_generation_methods:
+        print(m.name)
+
 genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 #model = genai.GenerativeModel('models/gemini-1.5-flash')
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+#model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+# 모델명을 명시적으로 지정 (경로 포함)
+try:
+    model = genai.GenerativeModel('models/gemini-1.5-flash')
+except Exception:
+    # 혹시라도 위 형식이 안 될 경우를 대비한 예외 처리
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
 def fetch_recent_papers():
     """
