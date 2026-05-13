@@ -25,26 +25,38 @@ except Exception:
     # 혹시라도 위 형식이 안 될 경우를 대비한 예외 처리
     model = genai.GenerativeModel('models/gemini-2.0-flash-lite')
 
-def fetch_recent_papers_org():
-    search_query = '(abs:"medical" OR abs:"multimodal") AND (abs:"NLP" OR abs:"time-series")'
-    
-    # 서버 에러 시 최대 3번까지 다시 시도
-    for attempt in range(3):
+def fetch_recent_papers():
+    """
+    관심 도메인(의료, 우주, 에이전트)과 
+    핵심 기술(멀티모달, NLP, 시계열, 강화학습, 디지털트윈)의 융합 논문을 검색합니다.
+    """
+    # 도메인 및 기술 키워드 설정
+    domains = '(abs:"medical" OR abs:"healthcare" OR abs:"microgravity" OR abs:"spaceflight" OR abs:"aerospace medicine" OR abs:"agent")'
+    techs = '(abs:"multimodal" OR abs:"NLP" OR abs:"time-series" OR abs:"reinforcement learning" OR abs:"digital twin")'
+    search_query = f"{domains} AND {techs}"
+
+    print(f"🔍 검색 쿼리: {search_query}")
+
+    # 재시도 설정 (최초 1회 + 재시도 3회 = 총 4회)
+    max_retries = 4
+    base_wait_time = 10  # 기본 대기 시간 (초)
+
+    for attempt in range(max_retries):
         try:
             search = arxiv.Search(
                 query=search_query,
-                max_results=5,
+                max_results=50,
                 sort_by=arxiv.SortCriterion.SubmittedDate
             )
             
             paper_data = []
-            # deprecated -- results()를 리스트로 변환하여 에러 발생 여부를 즉시 확인
-            # results = list(search.results())
-            # 최신 라이브러리 방식
             client = arxiv.Client()
             results = list(client.results(search))
+                
+            # 중복 방지를 위해 50개 중 2개 랜덤 추출
+            sampled_results = random.sample(results, min(len(results), 2))
             
-            for result in results:
+            for result in sampled_results:
                 paper_info = {
                     "title": result.title,
                     "summary": result.summary[:400],
@@ -53,16 +65,20 @@ def fetch_recent_papers_org():
                 paper_data.append(paper_info)
             
             return paper_data
-
+    
         except Exception as e:
-            print(f"⚠️ {attempt + 1}회차 시도 실패: {e}")
-            if attempt < 2:
-                time.sleep(5) # 5초 대기 후 다시 시도
+            print(f"⚠️ {attempt + 1}회차 시도 실패 - arXiv 검색 중 에러 발생: {e}")
+            
+            if attempt < max_retries - 1:
+                # 지수 백오프 계산: 10초 -> 20초 -> 40초
+                wait_time = base_wait_time * (2 ** attempt)
+                print(f"⏳ 지수 백오프 적용: {wait_time}초 대기 후 재요청합니다...")
+                time.sleep(wait_time)
             else:
-                print("❌ arXiv 서버 응답 지연으로 논문을 가져올 수 없습니다.")
+                print("❌ 최대 재시도 횟수를 초과했습니다. 수집을 중단합니다.")
                 return []
-
-def fetch_recent_papers():
+                
+def fetch_recent_papers_org():
     """
     관심 도메인(의료, 우주, 에이전트)과 
     핵심 기술(멀티모달, NLP, 시계열, 강화학습, 디지털트윈)의 융합 논문을 검색합니다.
